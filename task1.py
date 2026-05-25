@@ -46,7 +46,7 @@ class Record:
     def edit_phone(self, old_phone, new_phone):
         for p in self.phones:
             if p.value == old_phone:
-                p.value = new_phone
+                p.value = Phone(new_phone).value
                 return "Phone updated."
         return "Old phone not found."
 
@@ -61,12 +61,18 @@ class Record:
 
     def __str__(self):
         phones = "; ".join(p.value for p in self.phones)
+
         birthday = (
             self.birthday.value.strftime("%d.%m.%Y")
             if self.birthday
             else "No birthday"
         )
-        return f"Contact name: {self.name.value}, phones: {phones}, birthday: {birthday}"
+
+        return (
+            f"Contact name: {self.name.value}, "
+            f"phones: {phones}, "
+            f"birthday: {birthday}"
+        )
 
 
 class AddressBook(UserDict):
@@ -82,10 +88,13 @@ class AddressBook(UserDict):
 
     def get_upcoming_birthdays(self):
         today = datetime.today().date()
+
         upcoming = []
 
         for record in self.data.values():
+
             if record.birthday:
+
                 birthday = record.birthday.value.date()
 
                 birthday_this_year = birthday.replace(year=today.year)
@@ -98,6 +107,7 @@ class AddressBook(UserDict):
                 days_left = (birthday_this_year - today).days
 
                 if 0 <= days_left <= 7:
+
                     congratulation_date = birthday_this_year
 
                     if congratulation_date.weekday() >= 5:
@@ -108,9 +118,8 @@ class AddressBook(UserDict):
                     upcoming.append(
                         {
                             "name": record.name.value,
-                            "congratulation_date": congratulation_date.strftime(
-                                "%d.%m.%Y"
-                            ),
+                            "congratulation_date":
+                                congratulation_date.strftime("%d.%m.%Y"),
                         }
                     )
 
@@ -118,7 +127,9 @@ class AddressBook(UserDict):
 
 
 def input_error(func):
+
     def inner(*args, **kwargs):
+
         try:
             return func(*args, **kwargs)
 
@@ -136,12 +147,15 @@ def input_error(func):
 
 def parse_input(user_input):
     cmd, *args = user_input.split()
+
     cmd = cmd.strip().lower()
+
     return cmd, args
 
 
 @input_error
 def add_contact(args, book):
+
     name, phone = args
 
     record = book.find(name)
@@ -150,6 +164,7 @@ def add_contact(args, book):
         record = Record(name)
         book.add_record(record)
         message = "Contact added."
+
     else:
         message = "Contact updated."
 
@@ -160,6 +175,7 @@ def add_contact(args, book):
 
 @input_error
 def change_contact(args, book):
+
     name, old_phone, new_phone = args
 
     record = book.find(name)
@@ -172,6 +188,7 @@ def change_contact(args, book):
 
 @input_error
 def show_phone(args, book):
+
     name = args[0]
 
     record = book.find(name)
@@ -183,6 +200,7 @@ def show_phone(args, book):
 
 
 def show_all(book):
+
     if not book.data:
         return "No contacts saved."
 
@@ -191,6 +209,7 @@ def show_all(book):
 
 @input_error
 def add_birthday(args, book):
+
     name, birthday = args
 
     record = book.find(name)
@@ -205,6 +224,7 @@ def add_birthday(args, book):
 
 @input_error
 def show_birthday(args, book):
+
     name = args[0]
 
     record = book.find(name)
@@ -219,6 +239,7 @@ def show_birthday(args, book):
 
 
 def birthdays(args, book):
+
     upcoming = book.get_upcoming_birthdays()
 
     if not upcoming:
@@ -235,6 +256,7 @@ def birthdays(args, book):
 
 
 def main():
+
     book = AddressBook()
 
     print("Welcome to the assistant bot!")
@@ -249,6 +271,7 @@ def main():
     }
 
     while True:
+
         user_input = input("Enter a command: ")
 
         command, args = parse_input(user_input)
@@ -272,38 +295,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-import pickle
-
-
-class AddressBook:
-    pass
-
-
-def save_data(book, filename="addressbook.pkl"):
-    with open(filename, "wb") as f:
-        pickle.dump(book, f)
-
-
-def load_data(filename="addressbook.pkl"):
-    try:
-        with open(filename, "rb") as f:
-            return pickle.load(f)
-
-    except FileNotFoundError:
-        return AddressBook()
-
-
-def main():
-    book = load_data()
-
-    while True:
-        command = input(">>> ")
-
-        if command == "close" or command == "exit":
-            save_data(book)
-            print("Good bye!")
-            break
-
-
-main()
