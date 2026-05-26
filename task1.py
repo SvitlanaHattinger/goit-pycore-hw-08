@@ -47,7 +47,7 @@ class Record:
     def edit_phone(self, old_phone, new_phone):
         for p in self.phones:
             if p.value == old_phone:
-                p.value = new_phone
+                p.value = Phone(new_phone).value
                 return "Phone updated."
         return "Old phone not found."
 
